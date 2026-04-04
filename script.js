@@ -42,3 +42,35 @@ function addBookToLibrary(title, author, pages, read) {
     
     myLibrary.push(book);
 }
+
+function createNewRowInTable() {
+    const tr = document.createElement("tr");
+
+    for (let i = 0; i < 5; i++) {
+        const td = document.createElement("td");
+        tr.appendChild(td);
+    }
+    
+    const tbody = document.querySelector("tbody");
+    tbody.appendChild(tr);
+}
+
+function displayBooksInTable () {
+    const tbody = document.querySelector("tbody");
+    tbody.innerHTML = "";
+    
+    for (let book of myLibrary) {
+    
+        createNewRowInTable ();
+
+        const lastTr = document.querySelector("tbody").lastElementChild;
+        const removeTd = lastTr.children[4];
+
+        const removeBtn = document.createElement("button");
+        removeBtn.classList.add("remove");
+        removeBtn.textContent = "Remove";
+        removeTd.appendChild(removeBtn);
+
+        book.getBookInfo();
+    }
+}
