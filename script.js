@@ -74,3 +74,33 @@ function displayBooksInTable () {
         book.getBookInfo();
     }
 }
+
+const addDialog = document.getElementById("add-dialog");
+const form = document.querySelector("form");
+const cancelBtn = document.getElementById("cancel-btn");
+
+cancelBtn.addEventListener("click", () => {
+    addDialog.close();
+});
+
+form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+
+    addBookToLibrary(data.title, data.author, data.pages, data.read);
+    displayBooksInTable();
+
+    form.reset();
+    addDialog.close();
+});
+
+/*
+const tbody = document.querySelector("tbody");
+tbody.addEventListener("click", function (e) {
+    if (e.target.classList == "remove") {
+        alert("Bye");
+    }
+});
+*/
