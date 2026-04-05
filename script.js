@@ -10,6 +10,7 @@ Click Remove. Book is removed from Library array. Give data-attribute that corre
 */
 
 const myLibrary = [];
+const tbody = document.querySelector("tbody");
 
 function Book(title, author, pages, read, uuid) {
     if (!new.target) {
@@ -28,11 +29,19 @@ function Book(title, author, pages, read, uuid) {
         const authorTd = lastTr.children[1];
         const pagesTd = lastTr.children[2];
         const statusTd = lastTr.children[3];
+        const removeTd = lastTr.children[4];
+        const removeBtn = document.createElement("button");
 
         titleTd.textContent = this.title;
         authorTd.textContent = this.author;
         pagesTd.textContent = this.pages;
         statusTd.textContent = this.read;
+        lastTr.dataset.uuid = this.uuid;
+
+        removeBtn.classList.add("remove-btn");
+        removeBtn.dataset.uuid = this.uuid;
+        removeBtn.textContent = "Remove";
+        removeTd.appendChild(removeBtn);
     }
 }
 
@@ -51,25 +60,15 @@ function createNewRowInTable() {
         tr.appendChild(td);
     }
     
-    const tbody = document.querySelector("tbody");
     tbody.appendChild(tr);
 }
 
 function displayBooksInTable () {
-    const tbody = document.querySelector("tbody");
     tbody.innerHTML = "";
     
     for (let book of myLibrary) {
     
         createNewRowInTable ();
-
-        const lastTr = document.querySelector("tbody").lastElementChild;
-        const removeTd = lastTr.children[4];
-
-        const removeBtn = document.createElement("button");
-        removeBtn.classList.add("remove");
-        removeBtn.textContent = "Remove";
-        removeTd.appendChild(removeBtn);
 
         book.getBookInfo();
     }
@@ -81,7 +80,7 @@ const cancelBtn = document.getElementById("cancel-btn");
 
 cancelBtn.addEventListener("click", () => {
     addDialog.close();
-});
+})
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -94,13 +93,20 @@ form.addEventListener("submit", (event) => {
 
     form.reset();
     addDialog.close();
-});
+})
 
-/*
-const tbody = document.querySelector("tbody");
 tbody.addEventListener("click", function (e) {
-    if (e.target.classList == "remove") {
-        alert("Bye");
+    if (e.target.classList.contains("remove-btn")) {
+        const targetUuid = e.target.dataset.uuid;
+
+        removeBookFromLibrary(targetUuid);
     }
-});
-*/
+})
+
+function removeBookFromLibrary (targetUuid) {
+    const selectedBook = myLibrary.findIndex(book => book.uuid === targetUuid);
+
+    myLibrary.splice(selectedBook, 1);
+
+    displayBooksInTable();
+}
