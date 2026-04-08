@@ -12,7 +12,7 @@ Click Remove. Book is removed from Library array. Give data-attribute that corre
 const myLibrary = [];
 const tbody = document.querySelector("tbody");
 
-function Book(title, author, pages, read, uuid) {
+function Book(title, author, pages, status, uuid) {
     if (!new.target) {
         throw Error("You must use the 'new' operator to call the constructor");
     }
@@ -20,7 +20,7 @@ function Book(title, author, pages, read, uuid) {
     this.title = title;
     this.author = author;
     this.pages = pages;
-    this.read = read;
+    this.status = status;
     this.uuid = uuid;
 
     this.getBookInfo = function () {
@@ -28,26 +28,24 @@ function Book(title, author, pages, read, uuid) {
         const titleTd = lastTr.children[0];
         const authorTd = lastTr.children[1];
         const pagesTd = lastTr.children[2];
-        const statusTd = lastTr.children[3];
-        const removeTd = lastTr.children[4];
-        const removeBtn = document.createElement("button");
+        const statusBtn = lastTr.querySelector(".status-btn");
+        const removeBtn = lastTr.querySelector(".remove-btn");
 
         titleTd.textContent = this.title;
         authorTd.textContent = this.author;
         pagesTd.textContent = this.pages;
-        statusTd.textContent = this.read;
-        lastTr.dataset.uuid = this.uuid;
 
-        removeBtn.classList.add("remove-btn");
+        statusBtn.dataset.uuid = this.uuid;
+        statusBtn.textContent = this.status;
+        
         removeBtn.dataset.uuid = this.uuid;
         removeBtn.textContent = "Remove";
-        removeTd.appendChild(removeBtn);
     }
 }
 
-function addBookToLibrary(title, author, pages, read) {
+function addBookToLibrary(title, author, pages, status) {
     const uuid = crypto.randomUUID();
-    const book = new Book(title, author, pages, read, uuid);
+    const book = new Book(title, author, pages, status, uuid);
     
     myLibrary.push(book);
 }
@@ -61,6 +59,17 @@ function createNewRowInTable() {
     }
     
     tbody.appendChild(tr);
+
+    const statusTd = tr.children[3];
+    const removeTd = tr.children[4];
+    const statusBtn = document.createElement("button");
+    const removeBtn = document.createElement("button");
+
+    statusBtn.classList.add("status-btn");
+    statusTd.appendChild(statusBtn);
+
+    removeBtn.classList.add("remove-btn");
+    removeTd.appendChild(removeBtn);
 }
 
 function displayBooksInTable () {
@@ -68,7 +77,7 @@ function displayBooksInTable () {
     
     for (let book of myLibrary) {
     
-        createNewRowInTable ();
+        createNewRowInTable();
 
         book.getBookInfo();
     }
@@ -88,7 +97,7 @@ form.addEventListener("submit", (event) => {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
-    addBookToLibrary(data.title, data.author, data.pages, data.read);
+    addBookToLibrary(data.title, data.author, data.pages, data.status);
     displayBooksInTable();
 
     form.reset();
@@ -96,17 +105,33 @@ form.addEventListener("submit", (event) => {
 })
 
 tbody.addEventListener("click", function (e) {
-    if (e.target.classList.contains("remove-btn")) {
-        const targetUuid = e.target.dataset.uuid;
+    const targetUuid = e.target.dataset.uuid;
 
+    if (e.target.classList.contains("remove-btn")) {
         removeBookFromLibrary(targetUuid);
+    } else if (e.target.classList.contains("status-btn")) {
+        changeReadStatus(targetUuid);
     }
 })
 
 function removeBookFromLibrary (targetUuid) {
-    const selectedBook = myLibrary.findIndex(book => book.uuid === targetUuid);
+    const bookIndex = myLibrary.findIndex(book => book.uuid === targetUuid);
 
-    myLibrary.splice(selectedBook, 1);
+    myLibrary.splice(bookIndex, 1);
 
     displayBooksInTable();
+}
+
+function changeReadStatus (targetUuid) {
+    const bookIndex = myLibrary.findIndex(book => book.uuid === targetUuid);
+    const statusBtn = document.querySelector(`button[data-uuid="${targetUuid}"]`);
+    const book = myLibrary[bookIndex];
+
+    if (book.status === "Read") {
+        book.status = "Unread";
+    } else {
+        book.status = "Read";
+    }
+    
+    statusBtn.textContent = book.status;
 }
