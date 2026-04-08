@@ -1,14 +1,3 @@
-/* 
-Click "Add New Book"
-Dialog pops up
-Fill in Title, Author, Pages. Tick "Have you read it?". Press Submit. Use event.preventDefault()
-New Book is created. All Book objects should have a unique id, which can be generated using crypto.randomUUID()
-New Book is added to Library array
-Books in Library array are displayed in table
-Click Read/Unread. Book status is changed to Not Unread/Read
-Click Remove. Book is removed from Library array. Give data-attribute that corresponds to the unique id of the respective book object
-*/
-
 const myLibrary = [];
 const tbody = document.querySelector("tbody");
 
