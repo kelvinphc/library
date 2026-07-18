@@ -1,76 +1,94 @@
-const myLibrary = [];
-const tbody = document.querySelector("tbody");
-
-function Book(title, author, pages, status, uuid) {
-    if (!new.target) {
-        throw Error("You must use the 'new' operator to call the constructor");
+class Book {
+    constructor(title, author, pages, status) {
+        this.title = title;
+        this.author = author;
+        this.pages = pages;
+        this.status = status;
+        this.uuid = crypto.randomUUID();
     }
 
-    this.title = title;
-    this.author = author;
-    this.pages = pages;
-    this.status = status;
-    this.uuid = uuid;
+    toggleStatus() {
+        this.status = this.status === "Read" ? "Unread" : "Read";
+    }
+}
 
-    this.getBookInfo = function () {
-        const lastTr = document.querySelector("tbody").lastElementChild;
-        const titleTd = lastTr.children[0];
-        const authorTd = lastTr.children[1];
-        const pagesTd = lastTr.children[2];
-        const statusBtn = lastTr.querySelector(".status-btn");
-        const removeBtn = lastTr.querySelector(".remove-btn");
+class Library {
+    constructor(tbody) {
+        this.books = [];
+        this.tbody = tbody;
 
-        titleTd.textContent = this.title;
-        authorTd.textContent = this.author;
-        pagesTd.textContent = this.pages;
+        this.tbody.addEventListener("click", (e) => this.handleTableClick(e));
+    }
 
-        statusBtn.dataset.uuid = this.uuid;
-        statusBtn.textContent = this.status;
-        
-        removeBtn.dataset.uuid = this.uuid;
+    addBook(title, author, pages, status) {
+        this.books.push(new Book(title, author, pages, status));
+        this.render();
+    }
+
+    removeBook(uuid) {
+        this.books = this.books.filter(book => book.uuid !== uuid);
+        this.render();
+    }
+
+    toggleBookStatus(uuid) {
+        const book = this.books.find(book => book.uuid === uuid);
+        if (!book) return;
+
+        book.toggleStatus();
+        this.render();
+    }
+
+    handleTableClick(e) {
+        const uuid = e.target.dataset.uuid;
+        if (!uuid) return;
+
+        if (e.target.classList.contains("remove-btn")) {
+            this.removeBook(uuid);
+        } else if (e.target.classList.contains("status-btn")) {
+            this.toggleBookStatus(uuid);
+        }
+    }
+
+    render() {
+        this.tbody.innerHTML = "";
+        for (const book of this.books) {
+            this.tbody.appendChild(this.createRow(book));
+        }
+    }
+
+    createRow(book) {
+        const tr = document.createElement("tr");
+
+        const titleTd = document.createElement("td");
+        titleTd.textContent = book.title;
+
+        const authorTd = document.createElement("td");
+        authorTd.textContent = book.author;
+
+        const pagesTd = document.createElement("td");
+        pagesTd.textContent = book.pages;
+
+        const statusTd = document.createElement("td");
+        const statusBtn = document.createElement("button");
+        statusBtn.classList.add("status-btn");
+        statusBtn.dataset.uuid = book.uuid;
+        statusBtn.textContent = book.status;
+        statusTd.appendChild(statusBtn);
+
+        const removeTd = document.createElement("td");
+        const removeBtn = document.createElement("button");
+        removeBtn.classList.add("remove-btn");
+        removeBtn.dataset.uuid = book.uuid;
         removeBtn.textContent = "Remove";
+        removeTd.appendChild(removeBtn);
+
+        tr.append(titleTd, authorTd, pagesTd, statusTd, removeTd);
+
+        return tr;
     }
 }
 
-function addBookToLibrary(title, author, pages, status) {
-    const uuid = crypto.randomUUID();
-    const book = new Book(title, author, pages, status, uuid);
-    
-    myLibrary.push(book);
-}
-
-function createNewRowInTable() {
-    const tr = document.createElement("tr");
-
-    for (let i = 0; i < 5; i++) {
-        const td = document.createElement("td");
-        tr.appendChild(td);
-    }
-    
-    tbody.appendChild(tr);
-
-    const statusTd = tr.children[3];
-    const removeTd = tr.children[4];
-    const statusBtn = document.createElement("button");
-    const removeBtn = document.createElement("button");
-
-    statusBtn.classList.add("status-btn");
-    statusTd.appendChild(statusBtn);
-
-    removeBtn.classList.add("remove-btn");
-    removeTd.appendChild(removeBtn);
-}
-
-function displayBooksInTable () {
-    tbody.innerHTML = "";
-    
-    for (let book of myLibrary) {
-    
-        createNewRowInTable();
-
-        book.getBookInfo();
-    }
-}
+const library = new Library(document.querySelector("tbody"));
 
 const addDialog = document.getElementById("add-dialog");
 const form = document.querySelector("form");
@@ -78,7 +96,7 @@ const cancelBtn = document.getElementById("cancel-btn");
 
 cancelBtn.addEventListener("click", () => {
     addDialog.close();
-})
+});
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -86,41 +104,8 @@ form.addEventListener("submit", (event) => {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
-    addBookToLibrary(data.title, data.author, data.pages, data.status);
-    displayBooksInTable();
+    library.addBook(data.title, data.author, data.pages, data.status);
 
     form.reset();
     addDialog.close();
-})
-
-tbody.addEventListener("click", function (e) {
-    const targetUuid = e.target.dataset.uuid;
-
-    if (e.target.classList.contains("remove-btn")) {
-        removeBookFromLibrary(targetUuid);
-    } else if (e.target.classList.contains("status-btn")) {
-        changeReadStatus(targetUuid);
-    }
-})
-
-function removeBookFromLibrary (targetUuid) {
-    const bookIndex = myLibrary.findIndex(book => book.uuid === targetUuid);
-
-    myLibrary.splice(bookIndex, 1);
-
-    displayBooksInTable();
-}
-
-function changeReadStatus (targetUuid) {
-    const bookIndex = myLibrary.findIndex(book => book.uuid === targetUuid);
-    const statusBtn = document.querySelector(`button[data-uuid="${targetUuid}"]`);
-    const book = myLibrary[bookIndex];
-
-    if (book.status === "Read") {
-        book.status = "Unread";
-    } else {
-        book.status = "Read";
-    }
-    
-    statusBtn.textContent = book.status;
-}
+});
